@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AeroCast AI - Next-Gen Weather Prediction & Analytics Dashboard</title>
+  <!-- Google Fonts - Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Leaflet CSS for Map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  <!-- Core Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <!-- Global App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-logo">
+          <i data-lucide="cloud-lightning"></i>
+        </div>
+        <div class="brand-info">
+          <h2>AeroCast AI</h2>
+          <span>Meteorological Engine</span>
+        </div>
+      </div>
+      
+      <nav class="nav-menu">
+        <a href="#" class="nav-item active" data-tab="dashboard">
+          <i data-lucide="layout-dashboard"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="analytics">
+          <i data-lucide="line-chart"></i>
+          <span>AI Analytics</span>
+        </a>
+        <a href="#" class="nav-item" data-tab="map">
+          <i data-lucide="map"></i>
+          <span>Interactive Map</span>
+        </a>
+
+      </nav>
+      
+      <div class="sidebar-footer">
+        <div class="theme-toggle" id="theme-toggle-btn" title="Toggle Light/Dark Mode">
+          <i data-lucide="moon" class="dark-icon"></i>
+          <i data-lucide="sun" class="light-icon"></i>
+          <span>Dark Mode</span>
+        </div>
+        <div class="user-profile-summary">
+          <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=100&h=100&q=80" alt="User Profile" class="avatar">
+          <div class="user-text">
+            <h4 id="user-display-name">Dr. Sarah Jenkins</h4>
+            <span id="user-display-email">jenkins@aerocast.ai</span>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Window Area -->
+    <main class="main-content">
+      
+      <!-- Top Navigation Header -->
+      <header class="top-nav">
+        <!-- Search bar with geocoding feedback -->
+        <div class="search-container">
+          <i data-lucide="search" class="search-icon"></i>
+          <input type="text" id="city-search-input" placeholder="Search global cities (e.g. London, Tokyo, New York, Mumbai)..." autocomplete="off">
+          <button id="search-btn" class="search-button">Search</button>
+          <button id="gps-btn" class="gps-button" title="Detect Current GPS Location">
+            <i data-lucide="navigation"></i>
+          </button>
+          <div class="search-dropdown" id="search-results-dropdown">
+            <!-- Simulated or dynamic results populated here -->
+          </div>
+        </div>
+        
+        <!-- Action Items -->
+        <div class="header-actions">
+
+
+          <!-- Notification Icon & Panel -->
+          <div class="header-action-btn notification-wrapper" id="notification-trigger">
+            <i data-lucide="bell"></i>
+            <span class="notification-badge">2</span>
+            <div class="notification-dropdown" id="notification-panel">
+              <div class="dropdown-header">
+                <h3>Notifications & Alerts</h3>
+                <span class="mark-all-read" id="clear-notifications-btn">Clear All</span>
+              </div>
+              <ul class="notification-list" id="notifications-container">
+                <li class="notification-item warning">
+                  <div class="noti-icon"><i data-lucide="alert-triangle"></i></div>
+                  <div class="noti-text">
+                    <p><strong>Severe Wind Alert:</strong> Wind gusts exceeding 55 km/h predicted tomorrow morning.</p>
+                    <span class="noti-time">10 mins ago</span>
+                  </div>
+                </li>
+                <li class="notification-item info">
+                  <div class="noti-icon"><i data-lucide="sparkles"></i></div>
+                  <div class="noti-text">
+                    <p><strong>AI Model Optimised:</strong> Neural Weather Engine updated parameters for local Microclimates.</p>
+                    <span class="noti-time">2 hours ago</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+          
+          <!-- Quick Status Badge -->
+          <div class="status-badge" id="ai-model-status">
+            <span class="pulse-indicator success"></span>
+            <span>AI Predictor Active (v3.5)</span>
+          </div>
+
+          <div class="divider"></div>
+
+          <!-- Active Location Detail -->
+          <div class="active-location-pill" id="saved-locations-badge">
+            <i data-lucide="map-pin"></i>
+            <span id="current-location-text">London, UK</span>
+          </div>
+
+          <!-- Logout Button -->
+          <button id="logout-btn" class="header-action-btn" title="Sign Out">
+            <i data-lucide="log-out"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- Tabbed Views -->
+      <div class="tab-view-container">
+        
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="tab-dashboard" class="tab-pane active">
+          
+          <!-- Alert Banner for Active Notifications -->
+          <div class="weather-alert-banner" id="weather-alert-banner" style="display: none;">
+            <div class="alert-banner-content">
+              <i data-lucide="alert-circle" class="alert-banner-icon"></i>
+              <span id="alert-banner-text">Caution: Rain probability is elevated above 85% tomorrow. Plan accordingly.</span>
+            </div>
+            <button class="close-alert-banner" id="close-alert-banner-btn">&times;</button>
+          </div>
+
+          <!-- Hero Grid Layout -->
+          <div class="dashboard-grid">
+            
+            <!-- Hero Weather Card (Primary) -->
+            <div class="card glass hero-weather-card">
+              <div class="hero-header">
+                <div class="location-time">
+                  <h1 id="hero-city">London</h1>
+                  <span id="hero-date">Tuesday, June 9, 2026</span>
+                </div>
+                <div class="ai-confidence-indicator">
+                  <span class="badge ai-badge">
+                    <i data-lucide="cpu"></i>
+                    AI Confidence: <strong id="hero-confidence">94%</strong>
+                  </span>
+                </div>
+              </div>
+              
+              <div class="hero-body">
+                <div class="temp-condition-group">
+                  <div class="temp-display">
+                    <span class="temp-value" id="hero-temp">21</span><span class="temp-unit">°C</span>
+                  </div>
+                  <div class="condition-display">
+                    <div class="weather-icon-wrapper large" id="hero-weather-icon">
+                      <!-- Dynamically replaced SVGs -->
+                      <i data-lucide="cloud-sun" class="floating-weather-icon"></i>
+                    </div>
+                    <span class="condition-text" id="hero-condition">Partly Cloudy</span>
+                  </div>
+                </div>
+                
+                <div class="weather-meta-row">
+                  <div class="meta-item">
+                    <i data-lucide="thermometer"></i>
+                    <div>
+                      <span class="meta-label">Feels Like</span>
+                      <span class="meta-value" id="hero-feels-like">20°C</span>
+                    </div>
+                  </div>
+                  <div class="meta-item">
+                    <i data-lucide="sunrise"></i>
+                    <div>
+                      <span class="meta-label">Sunrise</span>
+                      <span class="meta-value" id="hero-sunrise">04:43 AM</span>
+                    </div>
+                  </div>
+                  <div class="meta-item">
+                    <i data-lucide="sunset"></i>
+                    <div>
+                      <span class="meta-label">Sunset</span>
+                      <span class="meta-value" id="hero-sunset">09:12 PM</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI-Powered Weather Prediction Card -->
+            <div class="card glass ai-prediction-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i data-lucide="sparkles" class="icon-accent"></i>
+                  <h3>AI Meteorological Forecast</h3>
+                </div>
+                <span class="tag-predict">24h Neural Model</span>
+              </div>
+              <div class="card-body">
+                <div class="ai-stat-grid">
+                  <div class="ai-stat-box">
+                    <span class="ai-stat-label">Tomorrow's Predicted Temp</span>
+                    <span class="ai-stat-value" id="ai-predict-temp">24.5°C</span>
+                    <span class="ai-stat-sub" id="ai-predict-temp-diff"><i data-lucide="trending-up"></i> +3.5°C warmer</span>
+                  </div>
+                  <div class="ai-stat-box">
+                    <span class="ai-stat-label">Rain Probability</span>
+                    <span class="ai-stat-value" id="ai-predict-rain">12%</span>
+                    <div class="progress-bar-container">
+                      <div class="progress-bar-fill" id="ai-predict-rain-bar" style="width: 12%"></div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="ai-narrative-box">
+                  <div class="narrative-title">
+                    <i data-lucide="brain-circuit"></i>
+                    <h4>Predictive Analysis</h4>
+                  </div>
+                  <p id="ai-narrative">High-pressure system dominates the local region. Air mass remains stable with low relative humidity, suppressing convective cloud growth. Expected fair weather with solar radiation spikes in the afternoon. Confidence index remains high due to ensemble run consensus.</p>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Quick Metrics Grid -->
+            <div class="metrics-grid">
+              
+              <!-- Card: Humidity -->
+              <div class="card glass metric-card">
+                <div class="metric-header">
+                  <span class="metric-title">Humidity</span>
+                  <i data-lucide="droplet" class="metric-icon humidity"></i>
+                </div>
+                <div class="metric-value-container">
+                  <span class="metric-value" id="metric-humidity">62%</span>
+                  <span class="metric-sub" id="metric-humidity-sub">Optimal Range</span>
+                </div>
+                <div class="metric-chart-mini" id="mini-humidity-spark"></div>
+              </div>
+
+              <!-- Card: Wind Speed -->
+              <div class="card glass metric-card">
+                <div class="metric-header">
+                  <span class="metric-title">Wind Speed</span>
+                  <i data-lucide="wind" class="metric-icon wind"></i>
+                </div>
+                <div class="metric-value-container">
+                  <span class="metric-value" id="metric-wind">14 km/h</span>
+                  <span class="metric-sub" id="metric-wind-direction">ENE direction</span>
+                </div>
+                <div class="metric-chart-mini" id="mini-wind-spark"></div>
+              </div>
+
+              <!-- Card: Pressure -->
+              <div class="card glass metric-card">
+                <div class="metric-header">
+                  <span class="metric-title">Pressure</span>
+                  <i data-lucide="gauge" class="metric-icon pressure"></i>
+                </div>
+                <div class="metric-value-container">
+                  <span class="metric-value" id="metric-pressure">1018 hPa</span>
+                  <span class="metric-sub" id="metric-pressure-trend"><i data-lucide="trending-up"></i> Rising steadily</span>
+                </div>
+                <div class="metric-chart-mini" id="mini-pressure-spark"></div>
+              </div>
+
+              <!-- Card: UV Index -->
+              <div class="card glass metric-card">
+                <div class="metric-header">
+                  <span class="metric-title">UV Index</span>
+                  <i data-lucide="sun" class="metric-icon uv"></i>
+                </div>
+                <div class="metric-value-container">
+                  <span class="metric-value" id="metric-uv">5</span>
+                  <span class="metric-sub tag uv-moderate" id="metric-uv-level">Moderate</span>
+                </div>
+                <div class="metric-chart-mini" id="mini-uv-spark"></div>
+              </div>
+
+              <!-- Card: Visibility -->
+              <div class="card glass metric-card">
+                <div class="metric-header">
+                  <span class="metric-title">Visibility</span>
+                  <i data-lucide="eye" class="metric-icon visibility"></i>
+                </div>
+                <div class="metric-value-container">
+                  <span class="metric-value" id="metric-visibility">10 km</span>
+                  <span class="metric-sub" id="metric-visibility-sub">Clear conditions</span>
+                </div>
+                <div class="metric-chart-mini" id="mini-visibility-spark"></div>
+              </div>
+
+              <!-- Card: AQI -->
+              <div class="card glass metric-card">
+                <div class="metric-header">
+                  <span class="metric-title">Air Quality Index</span>
+                  <i data-lucide="activity" class="metric-icon aqi"></i>
+                </div>
+                <div class="metric-value-container">
+                  <span class="metric-value" id="metric-aqi">42</span>
+                  <span class="metric-sub tag aqi-good" id="metric-aqi-level">Good (Clean Air)</span>
+                </div>
+                <div class="metric-chart-mini" id="mini-aqi-spark"></div>
+              </div>
+
+            </div>
+
+            <!-- Hourly Forecast Section -->
+            <div class="card glass hourly-forecast-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i data-lucide="clock"></i>
+                  <h3>Hourly Forecast</h3>
+                </div>
+                <span class="time-zone" id="hourly-timezone">GMT+1</span>
+              </div>
+              <div class="hourly-scroll-container" id="hourly-scroll">
+                <!-- Programmatic generation of hourly cards -->
+                <div class="hourly-item">
+                  <span class="hour">Now</span>
+                  <i data-lucide="cloud-sun"></i>
+                  <span class="temp">21°</span>
+                  <span class="rain-chance"><i data-lucide="droplet"></i> 5%</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- 7-Day Forecast Section -->
+            <div class="card glass weekly-forecast-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i data-lucide="calendar"></i>
+                  <h3>7-Day Prediction Outlook</h3>
+                </div>
+              </div>
+              <div class="weekly-list" id="weekly-forecast-container">
+                <!-- Programmatic rendering of weekly forecast rows -->
+              </div>
+            </div>
+
+            <!-- Visual Snapshot Module -->
+            <div class="card glass chart-snapshot-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i data-lucide="trending-up"></i>
+                  <h3>AI Temperature & Precipitation Forecast</h3>
+                </div>
+                <span class="quick-link-tab" onclick="switchTab('analytics')">View Full Analytics &rarr;</span>
+              </div>
+              <div class="card-body">
+                <div id="dashboard-main-chart" style="min-height: 250px; width: 100%;"></div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 2. ANALYTICS & CHARTS VIEW -->
+        <section id="tab-analytics" class="tab-pane">
+          <div class="section-header">
+            <h2>AI Climatological Analytics Hub</h2>
+            <p>High-resolution models, atmospheric delta distributions, and prediction confidence graphs.</p>
+          </div>
+          
+          <div class="analytics-grid">
+            
+            <div class="card glass chart-full-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i data-lucide="line-chart"></i>
+                  <h3>Temperature Trend Analysis (7 Days)</h3>
+                </div>
+                <span class="tag-model">Historical vs Prediction</span>
+              </div>
+              <div class="card-body">
+                <div id="analytics-temp-chart" style="height: 350px;"></div>
+              </div>
+            </div>
+
+            <div class="card glass chart-full-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i data-lucide="droplets"></i>
+                  <h3>Humidity & Rain Probability Delta</h3>
+                </div>
+                <span class="tag-model">Barometer Correlation</span>
+              </div>
+              <div class="card-body">
+                <div id="analytics-humidity-chart" style="height: 350px;"></div>
+              </div>
+            </div>
+
+            <div class="card glass chart-full-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i data-lucide="wind"></i>
+                  <h3>Wind Speed & Gust Analysis</h3>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="analytics-wind-chart" style="height: 300px;"></div>
+              </div>
+            </div>
+
+            <div class="card glass chart-full-card">
+              <div class="card-header">
+                <div class="card-title">
+                  <i data-lucide="history"></i>
+                  <h3>Historical Climatological Variance (June Average)</h3>
+                </div>
+              </div>
+              <div class="card-body">
+                <div id="analytics-historical-chart" style="height: 300px;"></div>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+        <!-- 3. INTERACTIVE MAP VIEW -->
+        <section id="tab-map" class="tab-pane">
+          <div class="section-header">
+            <h2>Interactive Weather layers & Radar Simulator</h2>
+            <p>Explore real-time air masses, fronts, and cloud maps using Leaflet.</p>
+          </div>
+          
+          <div class="map-layout-card card glass">
+            <div class="map-controls">
+              <button class="map-layer-btn active" data-layer="clouds">
+                <i data-lucide="cloud"></i> Clouds
+              </button>
+              <button class="map-layer-btn" data-layer="rain">
+                <i data-lucide="cloud-drizzle"></i> Rain Radar
+              </button>
+              <button class="map-layer-btn" data-layer="wind">
+                <i data-lucide="wind"></i> Wind Vectors
+              </button>
+              <button class="map-layer-btn" data-layer="temp">
+                <i data-lucide="thermometer"></i> Temperature Heatmap
+              </button>
+            </div>
+            
+            <div id="weather-leaflet-map" style="height: 550px; width: 100%; border-radius: 12px; z-index: 1;"></div>
+            
+            <div class="map-legend">
+              <span class="legend-title">Index Scale</span>
+              <div class="legend-scale">
+                <span class="scale-bar"></span>
+                <div class="scale-labels">
+                  <span>Low / Cool</span>
+                  <span>Moderate</span>
+                  <span>Severe / Warm</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MOBILE BOTTOM TAB BAR -->
+  <nav class="mobile-main-nav">
+    <a href="#" class="mobile-main-nav-item active" data-tab="dashboard">
+      <i data-lucide="layout-dashboard"></i>
+      <span>Dashboard</span>
+    </a>
+    <a href="#" class="mobile-main-nav-item" data-tab="analytics">
+      <i data-lucide="line-chart"></i>
+      <span>AI Analytics</span>
+    </a>
+    <a href="#" class="mobile-main-nav-item" data-tab="map">
+      <i data-lucide="map"></i>
+      <span>Radar Map</span>
+    </a>
+
+  </nav>
+  <!-- Fullscreen Chart Zoom Modal -->
+  <div id="chart-zoom-modal" class="modal-overlay">
+    <div class="modal-content glass">
+      <div class="modal-header">
+        <h3 id="zoom-modal-title">Meteorological Chart Analysis</h3>
+        <button class="close-modal-btn" id="close-zoom-modal-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="zoomed-chart-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen Login Screen -->
+  <div id="login-screen" class="login-overlay">
+    <div class="login-box glass">
+      <div class="login-header">
+        <div class="brand-logo large">
+          <i data-lucide="cloud-lightning"></i>
+        </div>
+        <h2>AeroCast AI</h2>
+        <p>Meteorological Engine Gateway</p>
+      </div>
+      <form id="login-form" class="login-form">
+        <div class="input-field-group">
+          <label for="login-email">Authorized Email Address</label>
+          <div class="input-wrapper">
+            <i data-lucide="mail" class="input-icon"></i>
+            <input type="email" id="login-email" placeholder="e.g. jenkins@aerocast.ai" required autocomplete="off">
+          </div>
+        </div>
+        <button type="submit" class="btn-login">
+          <span>Authorize Access</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+      </form>
+      <div class="login-footer">
+        <span>Enter any valid email address to access the dashboard.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ApexCharts CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <!-- Leaflet JS CDN -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- App JS Files -->
+  <script src="charts.js"></script>
+  <script src="map.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

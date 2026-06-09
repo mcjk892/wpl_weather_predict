@@ -1,0 +1,17 @@
+# Excel private database logs
+login_logs.csv
+*.csv
+
+# Local history or databases
+*.db
+*.sqlite
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE or editor configurations
+.vscode/
+.idea/
+.project
+.gemini/
